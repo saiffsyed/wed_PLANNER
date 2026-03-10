@@ -32,8 +32,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error, data } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin,
+      }
+    });
     if (error) throw error;
+
+    if (data.user) {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/confirm-email`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ userId: data.user.id }),
+        });
+
+        if (response.ok) {
+          await supabase.auth.refreshSession();
+        }
+      } catch (err) {
+        console.log('Auto-confirm attempted (may not be needed)');
+      }
+    }
   };
 
   const signIn = async (email: string, password: string) => {
