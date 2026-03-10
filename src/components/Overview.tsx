@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calendar, MapPin, Users, IndianRupee } from 'lucide-react';
+import { Calendar, MapPin, Users, IndianRupee, Building2, CheckSquare } from 'lucide-react';
 import type { Database } from '../lib/database.types';
 
 type Wedding = Database['public']['Tables']['weddings']['Row'];
