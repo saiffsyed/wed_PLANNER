@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Check } from 'lucide-react';
+import { Plus, Trash2, Check, CreditCard as Edit2 } from 'lucide-react';
 import type { Database } from '../lib/database.types';
 
 type BudgetCategory = Database['public']['Tables']['budget_categories']['Row'];
@@ -16,6 +16,8 @@ export function Budget({ weddingId }: BudgetProps) {
   const [loading, setLoading] = useState(true);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showItemForm, setShowItemForm] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
   const [categoryFormData, setCategoryFormData] = useState({
     name: '',
     allocated_amount: '',
@@ -57,43 +59,101 @@ export function Budget({ weddingId }: BudgetProps) {
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from('budget_categories').insert({
-        wedding_id: weddingId,
-        name: categoryFormData.name,
-        allocated_amount: parseFloat(categoryFormData.allocated_amount) || 0,
-        color: categoryFormData.color,
-      });
+      if (editingCategory) {
+        const { error } = await supabase
+          .from('budget_categories')
+          .update({
+            name: categoryFormData.name,
+            allocated_amount: parseFloat(categoryFormData.allocated_amount) || 0,
+            color: categoryFormData.color,
+          })
+          .eq('id', editingCategory);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('budget_categories').insert({
+          wedding_id: weddingId,
+          name: categoryFormData.name,
+          allocated_amount: parseFloat(categoryFormData.allocated_amount) || 0,
+          color: categoryFormData.color,
+        });
+
+        if (error) throw error;
+      }
+
       setShowCategoryForm(false);
+      setEditingCategory(null);
       setCategoryFormData({ name: '', allocated_amount: '', color: '#ef4444' });
       loadData();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to add category');
+      alert(err instanceof Error ? err.message : 'Failed to save category');
     }
+  };
+
+  const startEditCategory = (category: BudgetCategory) => {
+    setCategoryFormData({
+      name: category.name,
+      allocated_amount: category.allocated_amount.toString(),
+      color: category.color,
+    });
+    setEditingCategory(category.id);
+    setShowCategoryForm(true);
   };
 
   const handleItemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from('budget_items').insert({
-        wedding_id: weddingId,
-        category_id: itemFormData.category_id,
-        name: itemFormData.name,
-        estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
-        actual_cost: parseFloat(itemFormData.actual_cost) || 0,
-        paid: itemFormData.paid,
-        payment_date: itemFormData.payment_date || null,
-        notes: itemFormData.notes,
-      });
+      if (editingItem) {
+        const { error } = await supabase
+          .from('budget_items')
+          .update({
+            category_id: itemFormData.category_id,
+            name: itemFormData.name,
+            estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
+            actual_cost: parseFloat(itemFormData.actual_cost) || 0,
+            paid: itemFormData.paid,
+            payment_date: itemFormData.payment_date || null,
+            notes: itemFormData.notes,
+          })
+          .eq('id', editingItem);
 
-      if (error) throw error;
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('budget_items').insert({
+          wedding_id: weddingId,
+          category_id: itemFormData.category_id,
+          name: itemFormData.name,
+          estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
+          actual_cost: parseFloat(itemFormData.actual_cost) || 0,
+          paid: itemFormData.paid,
+          payment_date: itemFormData.payment_date || null,
+          notes: itemFormData.notes,
+        });
+
+        if (error) throw error;
+      }
+
       setShowItemForm(false);
+      setEditingItem(null);
       setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' });
       loadData();
     } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to add item');
+      alert(err instanceof Error ? err.message : 'Failed to save item');
     }
+  };
+
+  const startEditItem = (item: BudgetItem) => {
+    setItemFormData({
+      category_id: item.category_id,
+      name: item.name,
+      estimated_cost: item.estimated_cost.toString(),
+      actual_cost: item.actual_cost.toString(),
+      paid: item.paid,
+      payment_date: item.payment_date || '',
+      notes: item.notes || '',
+    });
+    setEditingItem(item.id);
+    setShowItemForm(true);
   };
 
   const deleteCategory = async (categoryId: string) => {
@@ -196,7 +256,9 @@ export function Budget({ weddingId }: BudgetProps) {
 
       {showCategoryForm && (
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Budget Category</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {editingCategory ? 'Edit Budget Category' : 'Add Budget Category'}
+          </h3>
           <form onSubmit={handleCategorySubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
@@ -236,11 +298,15 @@ export function Budget({ weddingId }: BudgetProps) {
                 type="submit"
                 className="flex-1 bg-rose-600 text-white py-2 rounded-lg hover:bg-rose-700 transition-colors"
               >
-                Add Category
+                {editingCategory ? 'Save Category' : 'Add Category'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowCategoryForm(false)}
+                onClick={() => {
+                  setShowCategoryForm(false);
+                  setEditingCategory(null);
+                  setCategoryFormData({ name: '', allocated_amount: '', color: '#ef4444' });
+                }}
                 className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
@@ -252,7 +318,9 @@ export function Budget({ weddingId }: BudgetProps) {
 
       {showItemForm && (
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Budget Item</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            {editingItem ? 'Edit Budget Item' : 'Add Budget Item'}
+          </h3>
           <form onSubmit={handleItemSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -337,11 +405,15 @@ export function Budget({ weddingId }: BudgetProps) {
                 type="submit"
                 className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
               >
-                Add Item
+                {editingItem ? 'Save Item' : 'Add Item'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowItemForm(false)}
+                onClick={() => {
+                  setShowItemForm(false);
+                  setEditingItem(null);
+                  setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' });
+                }}
                 className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
               >
                 Cancel
@@ -371,12 +443,20 @@ export function Budget({ weddingId }: BudgetProps) {
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-2">
                         <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
-                        <button
-                          onClick={() => deleteCategory(category.id)}
-                          className="text-red-600 hover:text-red-700 transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => startEditCategory(category)}
+                            className="text-blue-600 hover:text-blue-700 transition-colors"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteCategory(category.id)}
+                            className="text-red-600 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <div className="flex items-center space-x-4 text-sm">
                         <span className="text-gray-600">
@@ -434,12 +514,20 @@ export function Budget({ weddingId }: BudgetProps) {
                               )}
                               <p className="font-semibold text-gray-900">{formatCurrency(item.actual_cost)}</p>
                             </div>
-                            <button
-                              onClick={() => deleteItem(item.id)}
-                              className="text-red-600 hover:text-red-700 transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => startEditItem(item)}
+                                className="text-blue-600 hover:text-blue-700 transition-colors"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                onClick={() => deleteItem(item.id)}
+                                className="text-red-600 hover:text-red-700 transition-colors"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
                           </div>
                         </div>
                       ))}
