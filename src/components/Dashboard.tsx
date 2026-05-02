@@ -7,6 +7,7 @@ import { Guests } from './Guests';
 import { Budget } from './Budget';
 import { Vendors } from './Vendors';
 import { Checklist } from './Checklist';
+import { Crescent } from './_nikahly';
 
 type Tab = 'overview' | 'guests' | 'budget' | 'vendors' | 'checklist';
 
@@ -26,23 +27,26 @@ export function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-200">
+    <div className="min-h-screen bg-ivory-100">
+      <nav className="bg-indigo-900 bg-jali-on-indigo border-b border-gold-700/40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold text-gray-900">
-                {wedding.partner1_name} & {wedding.partner2_name}
-              </h1>
-              <div className="hidden md:flex space-x-1">
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-3">
+                <Crescent size={28} />
+                <h1 className="text-xl font-display font-semibold text-ivory-50">
+                  {wedding.partner1_name} <span className="text-gold-500 italic">&</span> {wedding.partner2_name}
+                </h1>
+              </div>
+              <div className="hidden md:flex gap-1">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 ${
+                    className={`px-4 py-2 rounded-full font-semibold text-sm transition-colors flex items-center gap-2 ${
                       activeTab === tab.id
-                        ? 'bg-rose-100 text-rose-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                        ? 'bg-gold-500 text-indigo-900'
+                        : 'text-ivory-100/80 hover:text-gold-300 hover:bg-indigo-800/40'
                     }`}
                   >
                     <tab.icon className="w-4 h-4" />
@@ -53,35 +57,35 @@ export function Dashboard() {
             </div>
             <button
               onClick={signOut}
-              className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+              className="flex items-center gap-2 text-ivory-100/70 hover:text-gold-300 px-4 py-2 rounded-full hover:bg-indigo-800/40 transition-colors text-sm"
             >
               <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
+              <span className="hidden sm:inline">Sign out</span>
             </button>
           </div>
         </div>
       </nav>
 
-      <div className="md:hidden bg-white border-b border-gray-200">
+      <div className="md:hidden bg-ivory-50 border-b border-gold-300/30">
         <div className="flex overflow-x-auto">
           {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-3 font-medium transition-colors flex items-center justify-center space-x-2 border-b-2 ${
+              className={`flex-1 px-4 py-3 font-semibold text-sm transition-colors flex items-center justify-center gap-2 border-b-2 ${
                 activeTab === tab.id
-                  ? 'border-rose-600 text-rose-700'
-                  : 'border-transparent text-gray-600'
+                  ? 'border-gold-500 text-indigo-900'
+                  : 'border-transparent text-indigo-900/60'
               }`}
             >
               <tab.icon className="w-4 h-4" />
-              <span className="text-sm">{tab.label}</span>
+              <span>{tab.label}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {activeTab === 'overview' && <Overview wedding={wedding} />}
         {activeTab === 'guests' && <Guests weddingId={wedding.id} />}
         {activeTab === 'budget' && <Budget weddingId={wedding.id} />}

@@ -1,3 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Lato:wght@300;400;500;700;900&family=Amiri:ital,wght@0,400;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html { font-family: 'Lato', system-ui, sans-serif; }
+  body {
+    background: #faf6ea;
+    color: #1a0a2e;
+  }
+  h1, h2, h3, h4 { font-family: 'Cormorant Garamond', Georgia, serif; letter-spacing: -0.01em; }
+}
+
+@layer components {
+  .nk-divider {
+    display: flex; align-items: center; gap: 12px;
+    color: #c9a84c;
+  }
+  .nk-divider::before, .nk-divider::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent);
+  }
+  .nk-divider-mark {
+    width: 8px; height: 8px; transform: rotate(45deg);
+    background: #c9a84c;
+    flex-shrink: 0;
+  }
+
+  .nk-bismillah {
+    font-family: 'Amiri', serif;
+    color: #c9a84c;
+    text-align: center;
+    font-size: 22px;
+    line-height: 1.6;
+    direction: rtl;
+  }
+
+  .nk-card {
+    background: #fdfaf2;
+    border: 1px solid rgba(201,168,76,0.18);
+    border-radius: 16px;
+    box-shadow: 0 1px 0 rgba(26,10,46,0.04), 0 2px 12px -2px rgba(26,10,46,0.08);
+  }
+
+  .nk-btn-primary {
+    background: #1a0a2e;
+    color: #c9a84c;
+    border: 1px solid #1a0a2e;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: 180ms ease;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nk-btn-primary:hover { background: #2d1b4e; box-shadow: 0 0 0 3px rgba(201,168,76,0.15); }
+  .nk-btn-primary:active { transform: translateY(1px); }
+  .nk-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .nk-btn-gold {
+    background: #c9a84c;
+    color: #1a0a2e;
+    border: 1px solid #a8893d;
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-weight: 700;
+    transition: 180ms ease;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nk-btn-gold:hover { background: #d4ad58; }
+
+  .nk-btn-ghost {
+    background: transparent;
+    color: #1a0a2e;
+    border: 1px solid rgba(26,10,46,0.18);
+    border-radius: 999px;
+    padding: 10px 22px;
+    font-weight: 600;
+    transition: 180ms ease;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .nk-btn-ghost:hover { background: rgba(26,10,46,0.04); border-color: rgba(26,10,46,0.32); }
+
+  .nk-input {
+    width: 100%;
+    background: #fdfaf2;
+    border: 1px solid rgba(26,10,46,0.18);
+    border-radius: 10px;
+    padding: 10px 14px;
+    color: #1a0a2e;
+    font-family: 'Lato', sans-serif;
+    transition: 180ms ease;
+  }
+  .nk-input:focus {
+    outline: none;
+    border-color: #c9a84c;
+    box-shadow: 0 0 0 3px rgba(201,168,76,0.18);
+  }
+
+  .nk-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #604c20;
+    margin-bottom: 6px;
+  }
+
+  .nk-eyebrow {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #c9a84c;
+  }
+
+  .nk-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+
+  .nk-tab {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 14px;
+    color: #1a0a2e;
+    transition: 180ms ease;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .nk-tab:hover { background: rgba(26,10,46,0.05); }
+  .nk-tab-active {
+    background: #1a0a2e;
+    color: #c9a84c;
+  }
+  .nk-tab-active:hover { background: #1a0a2e; }
+}
+
+@layer utilities {
+  .bg-jali-on-indigo {
+    background-color: #1a0a2e;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%23c9a84c' stroke-width='1' opacity='0.16'><path d='M30 0 L60 30 L30 60 L0 30 Z'/><path d='M30 12 L48 30 L30 48 L12 30 Z'/><circle cx='30' cy='30' r='4'/></g></svg>");
+  }
+  .bg-jali-on-ivory {
+    background-color: #faf6ea;
+    background-image:
+      url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'><g fill='none' stroke='%23c9a84c' stroke-width='1' opacity='0.22'><path d='M30 0 L60 30 L30 60 L0 30 Z'/><path d='M30 12 L48 30 L30 48 L12 30 Z'/><circle cx='30' cy='30' r='4'/></g></svg>");
+  }
+  .text-shadow-gold { text-shadow: 0 1px 0 rgba(201,168,76,0.25); }
+}

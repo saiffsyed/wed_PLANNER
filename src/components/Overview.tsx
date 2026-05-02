@@ -1,36 +1,24 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Calendar, MapPin, Users, IndianRupee, Building2, CheckSquare } from 'lucide-react';
+import { Calendar, MapPin, Heart } from 'lucide-react';
 import type { Database } from '../lib/database.types';
+import { Bismillah, GoldDivider, Stat, Card } from './_nikahly';
 
 type Wedding = Database['public']['Tables']['weddings']['Row'];
 
-interface OverviewProps {
-  wedding: Wedding;
-}
-
+interface OverviewProps { wedding: Wedding; }
 interface Stats {
-  totalGuests: number;
-  confirmedGuests: number;
-  totalSpent: number;
-  vendorCount: number;
-  completedTasks: number;
-  totalTasks: number;
+  totalGuests: number; confirmedGuests: number; totalSpent: number;
+  vendorCount: number; completedTasks: number; totalTasks: number;
 }
 
 export function Overview({ wedding }: OverviewProps) {
   const [stats, setStats] = useState<Stats>({
-    totalGuests: 0,
-    confirmedGuests: 0,
-    totalSpent: 0,
-    vendorCount: 0,
-    completedTasks: 0,
-    totalTasks: 0,
+    totalGuests: 0, confirmedGuests: 0, totalSpent: 0,
+    vendorCount: 0, completedTasks: 0, totalTasks: 0,
   });
 
-  useEffect(() => {
-    loadStats();
-  }, [wedding.id]);
+  useEffect(() => { loadStats(); }, [wedding.id]);
 
   const loadStats = async () => {
     const [guestsResult, budgetResult, vendorsResult, checklistResult] = await Promise.all([
@@ -39,14 +27,12 @@ export function Overview({ wedding }: OverviewProps) {
       supabase.from('vendors').select('id', { count: 'exact' }).eq('wedding_id', wedding.id),
       supabase.from('checklist_items').select('completed', { count: 'exact' }).eq('wedding_id', wedding.id),
     ]);
-
     const totalGuests = guestsResult.count || 0;
     const confirmedGuests = guestsResult.data?.filter((g) => g.rsvp_status === 'accepted').length || 0;
     const totalSpent = budgetResult.data?.reduce((sum, item) => sum + (item.actual_cost || 0), 0) || 0;
     const vendorCount = vendorsResult.count || 0;
     const totalTasks = checklistResult.count || 0;
     const completedTasks = checklistResult.data?.filter((t) => t.completed).length || 0;
-
     setStats({ totalGuests, confirmedGuests, totalSpent, vendorCount, completedTasks, totalTasks });
   };
 
@@ -54,14 +40,8 @@ export function Overview({ wedding }: OverviewProps) {
     if (!date) return 'Not set';
     return new Date(date).toLocaleDateString('en-IN', { year: 'numeric', month: 'long', day: 'numeric' });
   };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
   const daysUntilWedding = wedding.wedding_date
     ? Math.ceil((new Date(wedding.wedding_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
@@ -69,99 +49,75 @@ export function Overview({ wedding }: OverviewProps) {
 
   return (
     <div className="space-y-8">
-      <div className="bg-gradient-to-r from-rose-500 to-pink-600 rounded-2xl p-8 text-white">
-        <h2 className="text-3xl font-bold mb-4">
-          {wedding.partner1_name} & {wedding.partner2_name}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="flex items-center space-x-3">
-            <Calendar className="w-5 h-5" />
-            <div>
-              <p className="text-rose-100 text-sm">Wedding Date</p>
-              <p className="font-semibold">{formatDate(wedding.wedding_date)}</p>
+      {/* Hero card — midnight indigo with gold jali */}
+      <div className="bg-jali-on-indigo rounded-3xl p-10 text-ivory-50 relative overflow-hidden border border-gold-700/30">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: 'radial-gradient(ellipse 50% 60% at 100% 0%, rgba(201,168,76,0.22), transparent 60%)' }}/>
+        <div className="relative">
+          <Bismillah className="!text-base mb-4 text-left" />
+          <p className="nk-eyebrow mb-3">In sha Allah</p>
+          <h2 className="text-5xl md:text-6xl font-display font-semibold mb-2 leading-tight">
+            {wedding.partner1_name} <span className="text-gold-500 italic">&</span> {wedding.partner2_name}
+          </h2>
+          <GoldDivider className="w-48 my-5" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-gold-500 mt-1" />
+              <div>
+                <p className="nk-eyebrow text-gold-500/80">Date</p>
+                <p className="font-display text-xl">{formatDate(wedding.wedding_date)}</p>
+              </div>
             </div>
+            {daysUntilWedding !== null && daysUntilWedding > 0 && (
+              <div className="flex items-start gap-3">
+                <Heart className="w-5 h-5 text-gold-500 mt-1" />
+                <div>
+                  <p className="nk-eyebrow text-gold-500/80">Days remaining</p>
+                  <p className="font-display text-3xl text-gold-300">{daysUntilWedding}</p>
+                </div>
+              </div>
+            )}
+            {wedding.venue && (
+              <div className="flex items-start gap-3">
+                <MapPin className="w-5 h-5 text-gold-500 mt-1" />
+                <div>
+                  <p className="nk-eyebrow text-gold-500/80">Venue</p>
+                  <p className="font-display text-xl">{wedding.venue}</p>
+                </div>
+              </div>
+            )}
           </div>
-          {daysUntilWedding !== null && daysUntilWedding > 0 && (
-            <div className="flex items-center space-x-3">
-              <Calendar className="w-5 h-5" />
-              <div>
-                <p className="text-rose-100 text-sm">Days Until Wedding</p>
-                <p className="font-semibold text-2xl">{daysUntilWedding}</p>
-              </div>
-            </div>
-          )}
-          {wedding.venue && (
-            <div className="flex items-center space-x-3">
-              <MapPin className="w-5 h-5" />
-              <div>
-                <p className="text-rose-100 text-sm">Venue</p>
-                <p className="font-semibold">{wedding.venue}</p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <Users className="w-8 h-8 text-rose-600" />
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium mb-1">Guest List</h3>
-          <p className="text-3xl font-bold text-gray-900 mb-1">
-            {stats.confirmedGuests}/{stats.totalGuests}
-          </p>
-          <p className="text-sm text-gray-500">Confirmed out of {wedding.guest_count_target} expected</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <IndianRupee className="w-8 h-8 text-green-600" />
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium mb-1">Budget</h3>
-          <p className="text-3xl font-bold text-gray-900 mb-1">{formatCurrency(stats.totalSpent)}</p>
-          <p className="text-sm text-gray-500">of {formatCurrency(wedding.total_budget)} budget</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Stat label="Guests confirmed"
+              value={`${stats.confirmedGuests}/${stats.totalGuests}`}
+              hint={`of ${wedding.guest_count_target} expected`} />
+        <Card className="p-5">
+          <div className="nk-eyebrow mb-2">Spent</div>
+          <div className="text-3xl font-display font-semibold text-emerald-500">{formatCurrency(stats.totalSpent)}</div>
+          <div className="text-xs text-indigo-900/55 mt-1">of {formatCurrency(wedding.total_budget)}</div>
           {wedding.total_budget > 0 && (
-            <div className="mt-3">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-green-600 h-2 rounded-full transition-all"
-                  style={{ width: `${Math.min((stats.totalSpent / wedding.total_budget) * 100, 100)}%` }}
-                />
-              </div>
+            <div className="mt-3 h-1.5 bg-ivory-300 rounded-full overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all"
+                style={{ width: `${Math.min((stats.totalSpent / wedding.total_budget) * 100, 100)}%` }}/>
             </div>
           )}
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <Building2 className="w-8 h-8 text-blue-600" />
+        </Card>
+        <Stat label="Vendors" value={stats.vendorCount} hint="halal-friendly" tone="gold" />
+        <Card className="p-5">
+          <div className="nk-eyebrow mb-2">Tasks</div>
+          <div className="text-3xl font-display font-semibold text-indigo-900">
+            {stats.completedTasks}<span className="text-indigo-900/40">/{stats.totalTasks}</span>
           </div>
-          <h3 className="text-gray-600 text-sm font-medium mb-1">Vendors</h3>
-          <p className="text-3xl font-bold text-gray-900 mb-1">{stats.vendorCount}</p>
-          <p className="text-sm text-gray-500">Service providers</p>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <div className="flex items-center justify-between mb-4">
-            <CheckSquare className="w-8 h-8 text-purple-600" />
-          </div>
-          <h3 className="text-gray-600 text-sm font-medium mb-1">Checklist Progress</h3>
-          <p className="text-3xl font-bold text-gray-900 mb-1">
-            {stats.completedTasks}/{stats.totalTasks}
-          </p>
-          <p className="text-sm text-gray-500">Tasks completed</p>
           {stats.totalTasks > 0 && (
-            <div className="mt-3">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-purple-600 h-2 rounded-full transition-all"
-                  style={{ width: `${(stats.completedTasks / stats.totalTasks) * 100}%` }}
-                />
-              </div>
+            <div className="mt-3 h-1.5 bg-ivory-300 rounded-full overflow-hidden">
+              <div className="h-full bg-gold-500 transition-all"
+                style={{ width: `${(stats.completedTasks / stats.totalTasks) * 100}%` }}/>
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );

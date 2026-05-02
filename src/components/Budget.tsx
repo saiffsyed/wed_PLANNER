@@ -2,13 +2,12 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Plus, Trash2, Check, CreditCard as Edit2 } from 'lucide-react';
 import type { Database } from '../lib/database.types';
+import { SectionTitle, Card, GoldDivider } from './_nikahly';
 
 type BudgetCategory = Database['public']['Tables']['budget_categories']['Row'];
 type BudgetItem = Database['public']['Tables']['budget_items']['Row'];
 
-interface BudgetProps {
-  weddingId: string;
-}
+interface BudgetProps { weddingId: string; }
 
 export function Budget({ weddingId }: BudgetProps) {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
@@ -18,24 +17,13 @@ export function Budget({ weddingId }: BudgetProps) {
   const [showItemForm, setShowItemForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingItem, setEditingItem] = useState<string | null>(null);
-  const [categoryFormData, setCategoryFormData] = useState({
-    name: '',
-    allocated_amount: '',
-    color: '#ef4444',
-  });
+  const [categoryFormData, setCategoryFormData] = useState({ name: '', allocated_amount: '', color: '#c9a84c' });
   const [itemFormData, setItemFormData] = useState({
-    category_id: '',
-    name: '',
-    estimated_cost: '',
-    actual_cost: '',
-    paid: false,
-    payment_date: '',
-    notes: '',
+    category_id: '', name: '', estimated_cost: '', actual_cost: '',
+    paid: false, payment_date: '', notes: '',
   });
 
-  useEffect(() => {
-    loadData();
-  }, [weddingId]);
+  useEffect(() => { loadData(); }, [weddingId]);
 
   const loadData = async () => {
     try {
@@ -43,32 +31,23 @@ export function Budget({ weddingId }: BudgetProps) {
         supabase.from('budget_categories').select('*').eq('wedding_id', weddingId).order('created_at'),
         supabase.from('budget_items').select('*').eq('wedding_id', weddingId).order('created_at'),
       ]);
-
       if (categoriesResult.error) throw categoriesResult.error;
       if (itemsResult.error) throw itemsResult.error;
-
       setCategories(categoriesResult.data || []);
       setItems(itemsResult.data || []);
-    } catch (err) {
-      console.error('Error loading budget data:', err);
-    } finally {
-      setLoading(false);
-    }
+    } catch (err) { console.error('Error loading budget data:', err); }
+    finally { setLoading(false); }
   };
 
   const handleCategorySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       if (editingCategory) {
-        const { error } = await supabase
-          .from('budget_categories')
-          .update({
-            name: categoryFormData.name,
-            allocated_amount: parseFloat(categoryFormData.allocated_amount) || 0,
-            color: categoryFormData.color,
-          })
-          .eq('id', editingCategory);
-
+        const { error } = await supabase.from('budget_categories').update({
+          name: categoryFormData.name,
+          allocated_amount: parseFloat(categoryFormData.allocated_amount) || 0,
+          color: categoryFormData.color,
+        }).eq('id', editingCategory);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('budget_categories').insert({
@@ -77,25 +56,17 @@ export function Budget({ weddingId }: BudgetProps) {
           allocated_amount: parseFloat(categoryFormData.allocated_amount) || 0,
           color: categoryFormData.color,
         });
-
         if (error) throw error;
       }
-
       setShowCategoryForm(false);
       setEditingCategory(null);
-      setCategoryFormData({ name: '', allocated_amount: '', color: '#ef4444' });
+      setCategoryFormData({ name: '', allocated_amount: '', color: '#c9a84c' });
       loadData();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to save category');
-    }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to save category'); }
   };
 
   const startEditCategory = (category: BudgetCategory) => {
-    setCategoryFormData({
-      name: category.name,
-      allocated_amount: category.allocated_amount.toString(),
-      color: category.color,
-    });
+    setCategoryFormData({ name: category.name, allocated_amount: category.allocated_amount.toString(), color: category.color });
     setEditingCategory(category.id);
     setShowCategoryForm(true);
   };
@@ -104,19 +75,15 @@ export function Budget({ weddingId }: BudgetProps) {
     e.preventDefault();
     try {
       if (editingItem) {
-        const { error } = await supabase
-          .from('budget_items')
-          .update({
-            category_id: itemFormData.category_id,
-            name: itemFormData.name,
-            estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
-            actual_cost: parseFloat(itemFormData.actual_cost) || 0,
-            paid: itemFormData.paid,
-            payment_date: itemFormData.payment_date || null,
-            notes: itemFormData.notes,
-          })
-          .eq('id', editingItem);
-
+        const { error } = await supabase.from('budget_items').update({
+          category_id: itemFormData.category_id,
+          name: itemFormData.name,
+          estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
+          actual_cost: parseFloat(itemFormData.actual_cost) || 0,
+          paid: itemFormData.paid,
+          payment_date: itemFormData.payment_date || null,
+          notes: itemFormData.notes,
+        }).eq('id', editingItem);
         if (error) throw error;
       } else {
         const { error } = await supabase.from('budget_items').insert({
@@ -129,28 +96,20 @@ export function Budget({ weddingId }: BudgetProps) {
           payment_date: itemFormData.payment_date || null,
           notes: itemFormData.notes,
         });
-
         if (error) throw error;
       }
-
       setShowItemForm(false);
       setEditingItem(null);
       setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' });
       loadData();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to save item');
-    }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to save item'); }
   };
 
   const startEditItem = (item: BudgetItem) => {
     setItemFormData({
-      category_id: item.category_id,
-      name: item.name,
-      estimated_cost: item.estimated_cost.toString(),
-      actual_cost: item.actual_cost.toString(),
-      paid: item.paid,
-      payment_date: item.payment_date || '',
-      notes: item.notes || '',
+      category_id: item.category_id, name: item.name,
+      estimated_cost: item.estimated_cost.toString(), actual_cost: item.actual_cost.toString(),
+      paid: item.paid, payment_date: item.payment_date || '', notes: item.notes || '',
     });
     setEditingItem(item.id);
     setShowItemForm(true);
@@ -162,9 +121,7 @@ export function Budget({ weddingId }: BudgetProps) {
       const { error } = await supabase.from('budget_categories').delete().eq('id', categoryId);
       if (error) throw error;
       loadData();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete category');
-    }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to delete category'); }
   };
 
   const deleteItem = async (itemId: string) => {
@@ -173,358 +130,221 @@ export function Budget({ weddingId }: BudgetProps) {
       const { error } = await supabase.from('budget_items').delete().eq('id', itemId);
       if (error) throw error;
       loadData();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to delete item');
-    }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to delete item'); }
   };
 
   const togglePaid = async (itemId: string, currentStatus: boolean) => {
     try {
-      const { error } = await supabase
-        .from('budget_items')
-        .update({ paid: !currentStatus })
-        .eq('id', itemId);
-
+      const { error } = await supabase.from('budget_items').update({ paid: !currentStatus }).eq('id', itemId);
       if (error) throw error;
       loadData();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Failed to update payment status');
-    }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to update payment status'); }
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
+  const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
 
-  const getCategoryItems = (categoryId: string) => {
-    return items.filter((item) => item.category_id === categoryId);
-  };
-
-  const getCategorySpent = (categoryId: string) => {
-    return getCategoryItems(categoryId).reduce((sum, item) => sum + (item.actual_cost || 0), 0);
-  };
+  const getCategoryItems = (categoryId: string) => items.filter((item) => item.category_id === categoryId);
+  const getCategorySpent = (categoryId: string) =>
+    getCategoryItems(categoryId).reduce((sum, item) => sum + (item.actual_cost || 0), 0);
 
   const totalAllocated = categories.reduce((sum, cat) => sum + cat.allocated_amount, 0);
   const totalSpent = items.reduce((sum, item) => sum + (item.actual_cost || 0), 0);
 
-  if (loading) {
-    return <div className="text-center py-12">Loading budget...</div>;
-  }
+  if (loading) return <div className="text-center py-12 text-indigo-900/60 font-display italic">Loading budget…</div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Budget Management</h2>
-          <p className="text-gray-600 mt-1">Track expenses and manage your wedding budget</p>
-        </div>
-        <div className="flex space-x-3">
-          <button
-            onClick={() => setShowCategoryForm(!showCategoryForm)}
-            className="flex items-center space-x-2 bg-rose-600 text-white px-4 py-2 rounded-lg hover:bg-rose-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Category</span>
+      <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+        <SectionTitle eyebrow="Maal · المال" title="Budget" subtitle="Track expenses and manage your wedding budget" />
+        <div className="flex gap-3 flex-wrap">
+          <button onClick={() => { setShowCategoryForm(!showCategoryForm); setEditingCategory(null); setCategoryFormData({ name: '', allocated_amount: '', color: '#c9a84c' }); }}
+            className="nk-btn-primary flex items-center gap-2">
+            <Plus className="w-4 h-4" /><span>Add Category</span>
           </button>
-          <button
-            onClick={() => setShowItemForm(!showItemForm)}
-            className="flex items-center space-x-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Add Expense</span>
+          <button onClick={() => { setShowItemForm(!showItemForm); setEditingItem(null); setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' }); }}
+            className="nk-btn-gold flex items-center gap-2">
+            <Plus className="w-4 h-4" /><span>Add Expense</span>
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Total Budget</h3>
-          <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalAllocated)}</p>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-sm font-medium text-gray-600 mb-2">Total Spent</h3>
-          <p className="text-3xl font-bold text-gray-900">{formatCurrency(totalSpent)}</p>
-          <p className={`text-sm mt-2 ${totalSpent > totalAllocated ? 'text-red-600' : 'text-green-600'}`}>
-            {totalAllocated > 0 ? `${((totalSpent / totalAllocated) * 100).toFixed(1)}% of budget` : ''}
-          </p>
-        </div>
+      <GoldDivider className="w-full" />
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <Card className="p-6">
+          <div className="nk-eyebrow mb-2">Total allocated</div>
+          <p className="text-4xl font-display font-semibold text-indigo-900">{formatCurrency(totalAllocated)}</p>
+        </Card>
+        <Card className="p-6">
+          <div className="nk-eyebrow mb-2">Total spent</div>
+          <p className="text-4xl font-display font-semibold text-emerald-500">{formatCurrency(totalSpent)}</p>
+          {totalAllocated > 0 && (
+            <>
+              <p className={`text-sm mt-1 ${totalSpent > totalAllocated ? 'text-rose-500' : 'text-indigo-900/55'}`}>
+                {((totalSpent / totalAllocated) * 100).toFixed(1)}% of budget
+              </p>
+              <div className="mt-3 h-1.5 bg-ivory-300 rounded-full overflow-hidden">
+                <div className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 transition-all"
+                  style={{ width: `${Math.min((totalSpent / totalAllocated) * 100, 100)}%` }} />
+              </div>
+            </>
+          )}
+        </Card>
       </div>
 
       {showCategoryForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingCategory ? 'Edit Budget Category' : 'Add Budget Category'}
+        <Card className="p-6">
+          <h3 className="text-2xl font-display font-semibold text-indigo-900 mb-4">
+            {editingCategory ? 'Edit Category' : 'Add Budget Category'}
           </h3>
           <form onSubmit={handleCategorySubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category Name *</label>
-                <input
-                  type="text"
-                  value={categoryFormData.name}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
+                <label className="nk-label">Category name *</label>
+                <input type="text" value={categoryFormData.name} required className="nk-input"
                   placeholder="e.g., Venue, Catering"
-                  required
-                />
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, name: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Allocated Amount (₹) *</label>
-                <input
-                  type="number"
-                  value={categoryFormData.allocated_amount}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, allocated_amount: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                  min="0"
-                  required
-                />
+                <label className="nk-label">Allocated amount (₹) *</label>
+                <input type="number" value={categoryFormData.allocated_amount} required className="nk-input" min="0"
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, allocated_amount: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Color</label>
-                <input
-                  type="color"
-                  value={categoryFormData.color}
-                  onChange={(e) => setCategoryFormData({ ...categoryFormData, color: e.target.value })}
-                  className="w-full h-10 border border-gray-300 rounded-lg cursor-pointer"
-                />
+                <label className="nk-label">Colour</label>
+                <input type="color" value={categoryFormData.color} className="w-full h-11 border border-gold-300/40 rounded-lg cursor-pointer bg-ivory-50"
+                  onChange={(e) => setCategoryFormData({ ...categoryFormData, color: e.target.value })} />
               </div>
             </div>
-            <div className="flex space-x-3">
-              <button
-                type="submit"
-                className="flex-1 bg-rose-600 text-white py-2 rounded-lg hover:bg-rose-700 transition-colors"
-              >
-                {editingCategory ? 'Save Category' : 'Add Category'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCategoryForm(false);
-                  setEditingCategory(null);
-                  setCategoryFormData({ name: '', allocated_amount: '', color: '#ef4444' });
-                }}
-                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="flex gap-3">
+              <button type="submit" className="nk-btn-primary flex-1">{editingCategory ? 'Save' : 'Add Category'}</button>
+              <button type="button" onClick={() => { setShowCategoryForm(false); setEditingCategory(null); }} className="nk-btn-ghost flex-1">Cancel</button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
       {showItemForm && (
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            {editingItem ? 'Edit Budget Item' : 'Add Budget Item'}
+        <Card className="p-6">
+          <h3 className="text-2xl font-display font-semibold text-indigo-900 mb-4">
+            {editingItem ? 'Edit Expense' : 'Add Budget Item'}
           </h3>
           <form onSubmit={handleItemSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                <select
-                  value={itemFormData.category_id}
-                  onChange={(e) => setItemFormData({ ...itemFormData, category_id: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                  required
-                >
+                <label className="nk-label">Category *</label>
+                <select value={itemFormData.category_id} required className="nk-input"
+                  onChange={(e) => setItemFormData({ ...itemFormData, category_id: e.target.value })}>
                   <option value="">Select a category</option>
-                  {categories.map((cat) => (
-                    <option key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </option>
-                  ))}
+                  {categories.map((cat) => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Item Name *</label>
-                <input
-                  type="text"
-                  value={itemFormData.name}
-                  onChange={(e) => setItemFormData({ ...itemFormData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                  required
-                />
+                <label className="nk-label">Item name *</label>
+                <input type="text" value={itemFormData.name} required className="nk-input"
+                  onChange={(e) => setItemFormData({ ...itemFormData, name: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Cost (₹)</label>
-                <input
-                  type="number"
-                  value={itemFormData.estimated_cost}
-                  onChange={(e) => setItemFormData({ ...itemFormData, estimated_cost: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                  min="0"
-                />
+                <label className="nk-label">Estimated cost (₹)</label>
+                <input type="number" value={itemFormData.estimated_cost} className="nk-input" min="0"
+                  onChange={(e) => setItemFormData({ ...itemFormData, estimated_cost: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Actual Cost (₹)</label>
-                <input
-                  type="number"
-                  value={itemFormData.actual_cost}
-                  onChange={(e) => setItemFormData({ ...itemFormData, actual_cost: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                  min="0"
-                />
+                <label className="nk-label">Actual cost (₹)</label>
+                <input type="number" value={itemFormData.actual_cost} className="nk-input" min="0"
+                  onChange={(e) => setItemFormData({ ...itemFormData, actual_cost: e.target.value })} />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Payment Date</label>
-                <input
-                  type="date"
-                  value={itemFormData.payment_date}
-                  onChange={(e) => setItemFormData({ ...itemFormData, payment_date: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                />
+                <label className="nk-label">Payment date</label>
+                <input type="date" value={itemFormData.payment_date} className="nk-input"
+                  onChange={(e) => setItemFormData({ ...itemFormData, payment_date: e.target.value })} />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Paid</label>
-                <label className="flex items-center space-x-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={itemFormData.paid}
+              <div className="flex items-end pb-2">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={itemFormData.paid}
                     onChange={(e) => setItemFormData({ ...itemFormData, paid: e.target.checked })}
-                    className="w-5 h-5 text-rose-600 border-gray-300 rounded focus:ring-rose-500"
-                  />
-                  <span className="text-sm text-gray-700">Mark as paid</span>
+                    className="w-5 h-5 accent-gold-500" />
+                  <span className="text-sm text-indigo-900">Mark as paid</span>
                 </label>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-              <textarea
-                value={itemFormData.notes}
-                onChange={(e) => setItemFormData({ ...itemFormData, notes: e.target.value })}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rose-500 focus:border-transparent outline-none"
-                rows={2}
-              />
+              <label className="nk-label">Notes</label>
+              <textarea value={itemFormData.notes} className="nk-input" rows={2}
+                onChange={(e) => setItemFormData({ ...itemFormData, notes: e.target.value })} />
             </div>
-            <div className="flex space-x-3">
-              <button
-                type="submit"
-                className="flex-1 bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition-colors"
-              >
-                {editingItem ? 'Save Item' : 'Add Item'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowItemForm(false);
-                  setEditingItem(null);
-                  setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' });
-                }}
-                className="flex-1 bg-gray-200 text-gray-700 py-2 rounded-lg hover:bg-gray-300 transition-colors"
-              >
-                Cancel
-              </button>
+            <div className="flex gap-3">
+              <button type="submit" className="nk-btn-gold flex-1">{editingItem ? 'Save' : 'Add Item'}</button>
+              <button type="button" onClick={() => { setShowItemForm(false); setEditingItem(null); }} className="nk-btn-ghost flex-1">Cancel</button>
             </div>
           </form>
-        </div>
+        </Card>
       )}
 
-      {loading ? (
-        <div className="text-center py-12">Loading budget...</div>
-      ) : categories.length === 0 ? (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
-          <p className="text-gray-500">No budget categories yet. Click "Add Category" to get started.</p>
-        </div>
+      {categories.length === 0 ? (
+        <Card className="p-12 text-center">
+          <p className="text-indigo-900/50 font-display italic">No budget categories yet. Click "Add Category" to get started.</p>
+        </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-5">
           {categories.map((category) => {
             const categoryItems = getCategoryItems(category.id);
             const spent = getCategorySpent(category.id);
-            const estimated = categoryItems.reduce((sum, item) => sum + (item.estimated_cost || 0), 0);
-
             return (
-              <div key={category.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <Card key={category.id} className="overflow-hidden">
                 <div className="p-6" style={{ borderLeft: `4px solid ${category.color}` }}>
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{category.name}</h3>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => startEditCategory(category)}
-                            className="text-blue-600 hover:text-blue-700 transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => deleteCategory(category.id)}
-                            className="text-red-600 hover:text-red-700 transition-colors"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm">
-                        <span className="text-gray-600">
-                          Allocated: <span className="font-semibold">{formatCurrency(category.allocated_amount)}</span>
-                        </span>
-                        <span className="text-gray-600">
-                          Spent: <span className="font-semibold">{formatCurrency(spent)}</span>
-                        </span>
-                      </div>
-                      {category.allocated_amount > 0 && (
-                        <div className="mt-3">
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div
-                              className="h-2 rounded-full transition-all"
-                              style={{
-                                width: `${Math.min((spent / category.allocated_amount) * 100, 100)}%`,
-                                backgroundColor: spent > category.allocated_amount ? '#ef4444' : category.color,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-xl font-display font-semibold text-indigo-900">{category.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <button onClick={() => startEditCategory(category)} className="text-gold-600 hover:text-gold-700 transition-colors">
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => deleteCategory(category.id)} className="text-rose-500 hover:text-rose-600 transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
                   </div>
-
+                  <div className="flex items-center gap-4 text-sm text-indigo-900/60 mb-3">
+                    <span>Allocated: <span className="font-semibold text-indigo-900">{formatCurrency(category.allocated_amount)}</span></span>
+                    <span>Spent: <span className="font-semibold text-emerald-500">{formatCurrency(spent)}</span></span>
+                  </div>
+                  {category.allocated_amount > 0 && (
+                    <div className="h-1.5 bg-ivory-300 rounded-full overflow-hidden mb-4">
+                      <div className="h-full transition-all rounded-full"
+                        style={{
+                          width: `${Math.min((spent / category.allocated_amount) * 100, 100)}%`,
+                          background: spent > category.allocated_amount ? '#a23b30' : category.color,
+                        }} />
+                    </div>
+                  )}
                   {categoryItems.length > 0 && (
-                    <div className="mt-4 space-y-2">
+                    <div className="space-y-2">
                       {categoryItems.map((item) => (
-                        <div
-                          key={item.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                        >
-                          <div className="flex items-center space-x-3 flex-1">
-                            <button
-                              onClick={() => togglePaid(item.id, item.paid)}
-                              className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                                item.paid
-                                  ? 'bg-green-600 border-green-600'
-                                  : 'border-gray-300 hover:border-green-500'
-                              }`}
-                            >
+                        <div key={item.id} className="flex items-center justify-between p-3 bg-ivory-100 rounded-xl hover:bg-ivory-200 transition-colors">
+                          <div className="flex items-center gap-3 flex-1">
+                            <button onClick={() => togglePaid(item.id, item.paid)}
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
+                                item.paid ? 'bg-emerald-500 border-emerald-500' : 'border-indigo-900/25 hover:border-emerald-500'}`}>
                               {item.paid && <Check className="w-3 h-3 text-white" />}
                             </button>
                             <div className="flex-1">
-                              <p className={`font-medium ${item.paid ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                                {item.name}
-                              </p>
-                              {item.notes && <p className="text-xs text-gray-500">{item.notes}</p>}
+                              <p className={`font-medium ${item.paid ? 'line-through text-indigo-900/40' : 'text-indigo-900'}`}>{item.name}</p>
+                              {item.notes && <p className="text-xs text-indigo-900/50">{item.notes}</p>}
                             </div>
                           </div>
-                          <div className="flex items-center space-x-4">
+                          <div className="flex items-center gap-4">
                             <div className="text-right">
                               {item.estimated_cost > 0 && (
-                                <p className="text-xs text-gray-500">Est: {formatCurrency(item.estimated_cost)}</p>
+                                <p className="text-xs text-indigo-900/50">Est: {formatCurrency(item.estimated_cost)}</p>
                               )}
-                              <p className="font-semibold text-gray-900">{formatCurrency(item.actual_cost)}</p>
+                              <p className="font-semibold text-indigo-900">{formatCurrency(item.actual_cost)}</p>
                             </div>
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => startEditItem(item)}
-                                className="text-blue-600 hover:text-blue-700 transition-colors"
-                              >
+                            <div className="flex items-center gap-2">
+                              <button onClick={() => startEditItem(item)} className="text-gold-600 hover:text-gold-700 transition-colors">
                                 <Edit2 className="w-4 h-4" />
                               </button>
-                              <button
-                                onClick={() => deleteItem(item.id)}
-                                className="text-red-600 hover:text-red-700 transition-colors"
-                              >
+                              <button onClick={() => deleteItem(item.id)} className="text-rose-500 hover:text-rose-600 transition-colors">
                                 <Trash2 className="w-4 h-4" />
                               </button>
                             </div>
@@ -534,7 +354,7 @@ export function Budget({ weddingId }: BudgetProps) {
                     </div>
                   )}
                 </div>
-              </div>
+              </Card>
             );
           })}
         </div>

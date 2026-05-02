@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gunzip)",
+      "Bash(tar -x)",
+      "Bash(cp /tmp/nikahly-design-system/project/wed_PLANNER_nikahly/src/components/Auth.tsx \"C:\\\\Users\\\\syeds\\\\Downloads\\\\wed_PLANNER\\\\src\\\\components\\\\Auth.tsx\")",
+      "Bash(cp /tmp/nikahly-design-system/project/wed_PLANNER_nikahly/src/components/Dashboard.tsx \"C:\\\\Users\\\\syeds\\\\Downloads\\\\wed_PLANNER\\\\src\\\\components\\\\Dashboard.tsx\")",
+      "Bash(cp /tmp/nikahly-design-system/project/wed_PLANNER_nikahly/src/components/Overview.tsx \"C:\\\\Users\\\\syeds\\\\Downloads\\\\wed_PLANNER\\\\src\\\\components\\\\Overview.tsx\")",
+      "Bash(cp /tmp/nikahly-design-system/project/wed_PLANNER_nikahly/src/components/WeddingSetup.tsx \"C:\\\\Users\\\\syeds\\\\Downloads\\\\wed_PLANNER\\\\src\\\\components\\\\WeddingSetup.tsx\")",
+      "Bash(npm run *)",
+      "Bash(git add *)"
+    ]
+  }
+}

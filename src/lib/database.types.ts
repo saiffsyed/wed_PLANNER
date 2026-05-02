@@ -38,6 +38,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       guests: {
         Row: {
@@ -76,6 +77,7 @@ export type Database = {
           notes?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       budget_categories: {
         Row: {
@@ -102,6 +104,7 @@ export type Database = {
           color?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       budget_items: {
         Row: {
@@ -140,6 +143,7 @@ export type Database = {
           notes?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       vendors: {
         Row: {
@@ -187,6 +191,7 @@ export type Database = {
           notes?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
       checklist_items: {
         Row: {
@@ -222,7 +227,20 @@ export type Database = {
           category?: string;
           created_at?: string;
         };
+        Relationships: [];
       };
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      [_ in never]: never;
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
     };
   };
 };
