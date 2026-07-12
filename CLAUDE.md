@@ -31,19 +31,23 @@ main.tsx
 
 - `AuthContext` handles Supabase Auth (login, signup, session) and calls the `confirm-email` Edge Function on signup to auto-confirm users.
 - `useWedding` (`src/hooks/useWedding.ts`) fetches the user's single `weddings` row and exposes a `refresh()` callback; it is the main data-loading hook passed down through Dashboard.
-- `Dashboard.tsx` is a tabbed shell. Each tab (Overview, Guests, Budget, Vendors, Checklist) is a separate component that receives the `wedding` object and a `refresh` callback; they perform their own Supabase CRUD directly.
+- `Dashboard.tsx` is a tabbed shell. Each tab (Overview, Events, Guests, Budget, Vendors, Outfits, Checklist) is a separate component that receives the `wedding` object (or `weddingId`); they perform their own Supabase CRUD directly.
 
 ### Database (Supabase / PostgreSQL)
 
-Schema is in `supabase/migrations/20260307230826_create_wedding_app_schema.sql`. Six tables, all behind Row-Level Security tied to `auth.uid()`:
+Schema is in `supabase/migrations/` (base schema plus the events/outfits/payments migration). All tables sit behind Row-Level Security tied to `auth.uid()` via the `weddings` table:
 
 | Table | Purpose |
 |---|---|
 | `weddings` | One row per user; core metadata (partner names, date, venue, budget, target guest count) |
-| `guests` | Guest list; RSVP status (`pending`/`accepted`/`declined`), plus-ones, dietary |
+| `events` | Individual functions (Nikah, Mehndi, Baraat, Walima…) with date, time, venue, dress code |
+| `guests` | Guest list; overall RSVP status, side (bride/groom/mutual), party size, hall (men/women/mixed), dietary |
+| `guest_events` | Per-event invitations with their own RSVP status (unique guest+event) |
 | `budget_categories` | Named groupings (e.g. Venue, Catering) with allocated amounts |
-| `budget_items` | Line-item expenses linked to a category; estimated vs. actual cost |
-| `vendors` | Vendor contact details, cost, payment status, contract tracking |
+| `budget_items` | Line-item expenses linked to a category and optionally an event; estimated vs. actual cost |
+| `vendors` | Vendor contact details, cost, payment status, contract tracking, optional event tag |
+| `vendor_payments` | Payment schedule per vendor (advance/instalments) with due dates and paid state |
+| `outfits` | Outfit/shopping tracker per person and optionally per event; estimated vs. actual cost, purchased flag |
 | `checklist_items` | Planning tasks with due date, priority, and completion flag |
 
 ### Edge Functions

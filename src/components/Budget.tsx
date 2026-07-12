@@ -1,17 +1,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Trash2, Check, CreditCard as Edit2 } from 'lucide-react';
+import { Plus, Trash2, Check, Pencil } from 'lucide-react';
 import type { Database } from '../lib/database.types';
 import { SectionTitle, Card, GoldDivider } from './_nikahly';
 
 type BudgetCategory = Database['public']['Tables']['budget_categories']['Row'];
 type BudgetItem = Database['public']['Tables']['budget_items']['Row'];
+type Event = Database['public']['Tables']['events']['Row'];
 
 interface BudgetProps { weddingId: string; }
 
 export function Budget({ weddingId }: BudgetProps) {
   const [categories, setCategories] = useState<BudgetCategory[]>([]);
   const [items, setItems] = useState<BudgetItem[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showItemForm, setShowItemForm] = useState(false);
@@ -19,7 +21,7 @@ export function Budget({ weddingId }: BudgetProps) {
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [categoryFormData, setCategoryFormData] = useState({ name: '', allocated_amount: '', color: '#c9a84c' });
   const [itemFormData, setItemFormData] = useState({
-    category_id: '', name: '', estimated_cost: '', actual_cost: '',
+    category_id: '', event_id: '', name: '', estimated_cost: '', actual_cost: '',
     paid: false, payment_date: '', notes: '',
   });
 
@@ -27,14 +29,17 @@ export function Budget({ weddingId }: BudgetProps) {
 
   const loadData = async () => {
     try {
-      const [categoriesResult, itemsResult] = await Promise.all([
+      const [categoriesResult, itemsResult, eventsResult] = await Promise.all([
         supabase.from('budget_categories').select('*').eq('wedding_id', weddingId).order('created_at'),
         supabase.from('budget_items').select('*').eq('wedding_id', weddingId).order('created_at'),
+        supabase.from('events').select('*').eq('wedding_id', weddingId).order('event_date', { ascending: true }),
       ]);
       if (categoriesResult.error) throw categoriesResult.error;
       if (itemsResult.error) throw itemsResult.error;
+      if (eventsResult.error) throw eventsResult.error;
       setCategories(categoriesResult.data || []);
       setItems(itemsResult.data || []);
+      setEvents(eventsResult.data || []);
     } catch (err) { console.error('Error loading budget data:', err); }
     finally { setLoading(false); }
   };
@@ -74,40 +79,33 @@ export function Budget({ weddingId }: BudgetProps) {
   const handleItemSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const itemPayload = {
+        category_id: itemFormData.category_id,
+        event_id: itemFormData.event_id || null,
+        name: itemFormData.name,
+        estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
+        actual_cost: parseFloat(itemFormData.actual_cost) || 0,
+        paid: itemFormData.paid,
+        payment_date: itemFormData.payment_date || null,
+        notes: itemFormData.notes,
+      };
       if (editingItem) {
-        const { error } = await supabase.from('budget_items').update({
-          category_id: itemFormData.category_id,
-          name: itemFormData.name,
-          estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
-          actual_cost: parseFloat(itemFormData.actual_cost) || 0,
-          paid: itemFormData.paid,
-          payment_date: itemFormData.payment_date || null,
-          notes: itemFormData.notes,
-        }).eq('id', editingItem);
+        const { error } = await supabase.from('budget_items').update(itemPayload).eq('id', editingItem);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from('budget_items').insert({
-          wedding_id: weddingId,
-          category_id: itemFormData.category_id,
-          name: itemFormData.name,
-          estimated_cost: parseFloat(itemFormData.estimated_cost) || 0,
-          actual_cost: parseFloat(itemFormData.actual_cost) || 0,
-          paid: itemFormData.paid,
-          payment_date: itemFormData.payment_date || null,
-          notes: itemFormData.notes,
-        });
+        const { error } = await supabase.from('budget_items').insert({ wedding_id: weddingId, ...itemPayload });
         if (error) throw error;
       }
       setShowItemForm(false);
       setEditingItem(null);
-      setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' });
+      setItemFormData({ category_id: '', event_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' });
       loadData();
     } catch (err) { alert(err instanceof Error ? err.message : 'Failed to save item'); }
   };
 
   const startEditItem = (item: BudgetItem) => {
     setItemFormData({
-      category_id: item.category_id, name: item.name,
+      category_id: item.category_id, event_id: item.event_id || '', name: item.name,
       estimated_cost: item.estimated_cost.toString(), actual_cost: item.actual_cost.toString(),
       paid: item.paid, payment_date: item.payment_date || '', notes: item.notes || '',
     });
@@ -162,7 +160,7 @@ export function Budget({ weddingId }: BudgetProps) {
             className="nk-btn-primary flex items-center gap-2">
             <Plus className="w-4 h-4" /><span>Add Category</span>
           </button>
-          <button onClick={() => { setShowItemForm(!showItemForm); setEditingItem(null); setItemFormData({ category_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' }); }}
+          <button onClick={() => { setShowItemForm(!showItemForm); setEditingItem(null); setItemFormData({ category_id: '', event_id: '', name: '', estimated_cost: '', actual_cost: '', paid: false, payment_date: '', notes: '' }); }}
             className="nk-btn-gold flex items-center gap-2">
             <Plus className="w-4 h-4" /><span>Add Expense</span>
           </button>
@@ -246,6 +244,14 @@ export function Budget({ weddingId }: BudgetProps) {
                   onChange={(e) => setItemFormData({ ...itemFormData, name: e.target.value })} />
               </div>
               <div>
+                <label className="nk-label">For event</label>
+                <select value={itemFormData.event_id} className="nk-input"
+                  onChange={(e) => setItemFormData({ ...itemFormData, event_id: e.target.value })}>
+                  <option value="">All / no specific event</option>
+                  {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                </select>
+              </div>
+              <div>
                 <label className="nk-label">Estimated cost (₹)</label>
                 <input type="number" value={itemFormData.estimated_cost} className="nk-input" min="0"
                   onChange={(e) => setItemFormData({ ...itemFormData, estimated_cost: e.target.value })} />
@@ -298,7 +304,7 @@ export function Budget({ weddingId }: BudgetProps) {
                     <h3 className="text-xl font-display font-semibold text-indigo-900">{category.name}</h3>
                     <div className="flex items-center gap-2">
                       <button onClick={() => startEditCategory(category)} className="text-gold-600 hover:text-gold-700 transition-colors">
-                        <Edit2 className="w-4 h-4" />
+                        <Pencil className="w-4 h-4" />
                       </button>
                       <button onClick={() => deleteCategory(category.id)} className="text-rose-500 hover:text-rose-600 transition-colors">
                         <Trash2 className="w-4 h-4" />
@@ -329,7 +335,14 @@ export function Budget({ weddingId }: BudgetProps) {
                               {item.paid && <Check className="w-3 h-3 text-white" />}
                             </button>
                             <div className="flex-1">
-                              <p className={`font-medium ${item.paid ? 'line-through text-indigo-900/40' : 'text-indigo-900'}`}>{item.name}</p>
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className={`font-medium ${item.paid ? 'line-through text-indigo-900/40' : 'text-indigo-900'}`}>{item.name}</p>
+                                {item.event_id && events.find((ev) => ev.id === item.event_id) && (
+                                  <span className="nk-chip bg-gold-100 text-gold-700">
+                                    {events.find((ev) => ev.id === item.event_id)!.name}
+                                  </span>
+                                )}
+                              </div>
                               {item.notes && <p className="text-xs text-indigo-900/50">{item.notes}</p>}
                             </div>
                           </div>
@@ -342,7 +355,7 @@ export function Budget({ weddingId }: BudgetProps) {
                             </div>
                             <div className="flex items-center gap-2">
                               <button onClick={() => startEditItem(item)} className="text-gold-600 hover:text-gold-700 transition-colors">
-                                <Edit2 className="w-4 h-4" />
+                                <Pencil className="w-4 h-4" />
                               </button>
                               <button onClick={() => deleteItem(item.id)} className="text-rose-500 hover:text-rose-600 transition-colors">
                                 <Trash2 className="w-4 h-4" />

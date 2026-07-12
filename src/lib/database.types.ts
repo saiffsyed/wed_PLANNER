@@ -40,6 +40,66 @@ export type Database = {
         };
         Relationships: [];
       };
+      events: {
+        Row: {
+          id: string;
+          wedding_id: string;
+          name: string;
+          event_date: string | null;
+          event_time: string;
+          venue: string;
+          dress_code: string;
+          notes: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          wedding_id: string;
+          name: string;
+          event_date?: string | null;
+          event_time?: string;
+          venue?: string;
+          dress_code?: string;
+          notes?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          wedding_id?: string;
+          name?: string;
+          event_date?: string | null;
+          event_time?: string;
+          venue?: string;
+          dress_code?: string;
+          notes?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      guest_events: {
+        Row: {
+          id: string;
+          guest_id: string;
+          event_id: string;
+          rsvp_status: 'pending' | 'accepted' | 'declined';
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          guest_id: string;
+          event_id: string;
+          rsvp_status?: 'pending' | 'accepted' | 'declined';
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          guest_id?: string;
+          event_id?: string;
+          rsvp_status?: 'pending' | 'accepted' | 'declined';
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       guests: {
         Row: {
           id: string;
@@ -49,6 +109,9 @@ export type Database = {
           phone: string;
           rsvp_status: 'pending' | 'accepted' | 'declined';
           plus_one: boolean;
+          side: 'bride' | 'groom' | 'mutual';
+          party_size: number;
+          hall: 'men' | 'women' | 'mixed';
           dietary_restrictions: string;
           notes: string;
           created_at: string;
@@ -61,6 +124,9 @@ export type Database = {
           phone?: string;
           rsvp_status?: 'pending' | 'accepted' | 'declined';
           plus_one?: boolean;
+          side?: 'bride' | 'groom' | 'mutual';
+          party_size?: number;
+          hall?: 'men' | 'women' | 'mixed';
           dietary_restrictions?: string;
           notes?: string;
           created_at?: string;
@@ -73,6 +139,9 @@ export type Database = {
           phone?: string;
           rsvp_status?: 'pending' | 'accepted' | 'declined';
           plus_one?: boolean;
+          side?: 'bride' | 'groom' | 'mutual';
+          party_size?: number;
+          hall?: 'men' | 'women' | 'mixed';
           dietary_restrictions?: string;
           notes?: string;
           created_at?: string;
@@ -111,6 +180,7 @@ export type Database = {
           id: string;
           category_id: string;
           wedding_id: string;
+          event_id: string | null;
           name: string;
           estimated_cost: number;
           actual_cost: number;
@@ -123,6 +193,7 @@ export type Database = {
           id?: string;
           category_id: string;
           wedding_id: string;
+          event_id?: string | null;
           name: string;
           estimated_cost?: number;
           actual_cost?: number;
@@ -135,6 +206,7 @@ export type Database = {
           id?: string;
           category_id?: string;
           wedding_id?: string;
+          event_id?: string | null;
           name?: string;
           estimated_cost?: number;
           actual_cost?: number;
@@ -149,6 +221,7 @@ export type Database = {
         Row: {
           id: string;
           wedding_id: string;
+          event_id: string | null;
           name: string;
           category: string;
           contact_name: string;
@@ -164,6 +237,7 @@ export type Database = {
         Insert: {
           id?: string;
           wedding_id: string;
+          event_id?: string | null;
           name: string;
           category: string;
           contact_name?: string;
@@ -179,6 +253,7 @@ export type Database = {
         Update: {
           id?: string;
           wedding_id?: string;
+          event_id?: string | null;
           name?: string;
           category?: string;
           contact_name?: string;
@@ -188,6 +263,87 @@ export type Database = {
           cost?: number;
           paid?: boolean;
           contract_signed?: boolean;
+          notes?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      vendor_payments: {
+        Row: {
+          id: string;
+          vendor_id: string;
+          wedding_id: string;
+          amount: number;
+          due_date: string | null;
+          paid: boolean;
+          paid_date: string | null;
+          notes: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          vendor_id: string;
+          wedding_id: string;
+          amount?: number;
+          due_date?: string | null;
+          paid?: boolean;
+          paid_date?: string | null;
+          notes?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          vendor_id?: string;
+          wedding_id?: string;
+          amount?: number;
+          due_date?: string | null;
+          paid?: boolean;
+          paid_date?: string | null;
+          notes?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      outfits: {
+        Row: {
+          id: string;
+          wedding_id: string;
+          event_id: string | null;
+          name: string;
+          for_person: string;
+          item_type: string;
+          shop: string;
+          estimated_cost: number;
+          actual_cost: number;
+          purchased: boolean;
+          notes: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          wedding_id: string;
+          event_id?: string | null;
+          name: string;
+          for_person?: string;
+          item_type?: string;
+          shop?: string;
+          estimated_cost?: number;
+          actual_cost?: number;
+          purchased?: boolean;
+          notes?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          wedding_id?: string;
+          event_id?: string | null;
+          name?: string;
+          for_person?: string;
+          item_type?: string;
+          shop?: string;
+          estimated_cost?: number;
+          actual_cost?: number;
+          purchased?: boolean;
           notes?: string;
           created_at?: string;
         };

@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           await supabase.auth.refreshSession();
         }
-      } catch (err) {
+      } catch {
         console.log('Auto-confirm attempted (may not be needed)');
       }
     }

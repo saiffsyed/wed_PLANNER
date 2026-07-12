@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { Crescent, GoldDivider, Bismillah } from './_nikahly';
 
@@ -8,7 +8,22 @@ export function Auth() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [countdown, setCountdown] = useState<{ days: number; names: string } | null>(null);
   const { signIn, signUp } = useAuth();
+
+  // Show a countdown if this device has seen the wedding before
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('nikahly_wedding_info');
+      if (!raw) return;
+      const info = JSON.parse(raw) as { date: string | null; names: string };
+      if (!info.date) return;
+      const days = Math.ceil((new Date(info.date).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+      if (days > 0) setCountdown({ days, names: info.names });
+    } catch {
+      // ignore malformed localStorage
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +57,14 @@ export function Auth() {
             <h1 className="text-4xl font-display font-semibold text-indigo-900">Nikahly</h1>
             <p className="text-indigo-900/60 italic font-display">Your wedding companion</p>
             <GoldDivider className="w-40 mt-2" />
+            {countdown && (
+              <div className="mt-2 px-6 py-3 rounded-2xl bg-indigo-900 border border-gold-500/40 text-center">
+                <p className="text-3xl font-display font-semibold text-gold-500">{countdown.days}</p>
+                <p className="text-xs text-ivory-100/80 mt-0.5">
+                  {countdown.days === 1 ? 'day' : 'days'} until {countdown.names}'s big day
+                </p>
+              </div>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5 mt-8">

@@ -1,28 +1,42 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useWedding } from '../hooks/useWedding';
-import { Home, Users, IndianRupee, Building2, CheckSquare, LogOut } from 'lucide-react';
+import { Home, Users, IndianRupee, Building2, CheckSquare, LogOut, CalendarDays, Shirt } from 'lucide-react';
 import { Overview } from './Overview';
+import { Events } from './Events';
 import { Guests } from './Guests';
 import { Budget } from './Budget';
 import { Vendors } from './Vendors';
+import { Outfits } from './Outfits';
 import { Checklist } from './Checklist';
 import { Crescent } from './_nikahly';
 
-type Tab = 'overview' | 'guests' | 'budget' | 'vendors' | 'checklist';
+type Tab = 'overview' | 'events' | 'guests' | 'budget' | 'vendors' | 'outfits' | 'checklist';
 
 export function Dashboard() {
   const { signOut } = useAuth();
   const { wedding } = useWedding();
   const [activeTab, setActiveTab] = useState<Tab>('overview');
 
+  // Remember wedding info so the login screen can show a countdown
+  useEffect(() => {
+    if (wedding) {
+      localStorage.setItem('nikahly_wedding_info', JSON.stringify({
+        date: wedding.wedding_date,
+        names: `${wedding.partner1_name} & ${wedding.partner2_name}`,
+      }));
+    }
+  }, [wedding]);
+
   if (!wedding) return null;
 
   const tabs = [
     { id: 'overview' as Tab, label: 'Overview', icon: Home },
+    { id: 'events' as Tab, label: 'Events', icon: CalendarDays },
     { id: 'guests' as Tab, label: 'Guests', icon: Users },
     { id: 'budget' as Tab, label: 'Budget', icon: IndianRupee },
     { id: 'vendors' as Tab, label: 'Vendors', icon: Building2 },
+    { id: 'outfits' as Tab, label: 'Outfits', icon: Shirt },
     { id: 'checklist' as Tab, label: 'Checklist', icon: CheckSquare },
   ];
 
@@ -72,7 +86,7 @@ export function Dashboard() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex-1 px-4 py-3 font-semibold text-sm transition-colors flex items-center justify-center gap-2 border-b-2 ${
+              className={`flex-shrink-0 px-4 py-3 font-semibold text-sm transition-colors flex items-center justify-center gap-2 border-b-2 ${
                 activeTab === tab.id
                   ? 'border-gold-500 text-indigo-900'
                   : 'border-transparent text-indigo-900/60'
@@ -87,9 +101,11 @@ export function Dashboard() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {activeTab === 'overview' && <Overview wedding={wedding} />}
+        {activeTab === 'events' && <Events weddingId={wedding.id} />}
         {activeTab === 'guests' && <Guests weddingId={wedding.id} />}
         {activeTab === 'budget' && <Budget weddingId={wedding.id} />}
         {activeTab === 'vendors' && <Vendors weddingId={wedding.id} />}
+        {activeTab === 'outfits' && <Outfits wedding={wedding} />}
         {activeTab === 'checklist' && <Checklist weddingId={wedding.id} />}
       </main>
     </div>

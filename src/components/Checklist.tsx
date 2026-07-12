@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Plus, Calendar, Check, Trash2 } from 'lucide-react';
+import { Plus, Calendar, Check, Trash2, Pencil } from 'lucide-react';
 import type { Database } from '../lib/database.types';
 import { SectionTitle, Card, GoldDivider } from './_nikahly';
 
@@ -11,6 +11,7 @@ export function Checklist({ weddingId }: ChecklistProps) {
   const [items, setItems] = useState<ChecklistItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [editingItem, setEditingItem] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     title: '', description: '', due_date: '',
     priority: 'medium' as 'low' | 'medium' | 'high', category: '',
@@ -31,15 +32,31 @@ export function Checklist({ weddingId }: ChecklistProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const { error } = await supabase.from('checklist_items').insert({
-        wedding_id: weddingId, title: formData.title, description: formData.description,
+      const payload = {
+        title: formData.title, description: formData.description,
         due_date: formData.due_date || null, priority: formData.priority, category: formData.category,
-      });
-      if (error) throw error;
+      };
+      if (editingItem) {
+        const { error } = await supabase.from('checklist_items').update(payload).eq('id', editingItem);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from('checklist_items').insert({ wedding_id: weddingId, ...payload });
+        if (error) throw error;
+      }
       setShowForm(false);
+      setEditingItem(null);
       setFormData({ title: '', description: '', due_date: '', priority: 'medium', category: '' });
       loadItems();
-    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to add task'); }
+    } catch (err) { alert(err instanceof Error ? err.message : 'Failed to save task'); }
+  };
+
+  const startEdit = (item: ChecklistItem) => {
+    setFormData({
+      title: item.title, description: item.description || '',
+      due_date: item.due_date || '', priority: item.priority, category: item.category || '',
+    });
+    setEditingItem(item.id);
+    setShowForm(true);
   };
 
   const toggleComplete = async (itemId: string, currentStatus: boolean) => {
@@ -84,7 +101,8 @@ export function Checklist({ weddingId }: ChecklistProps) {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
         <SectionTitle eyebrow="Jadwal · الجدول" title="Checklist" subtitle="Track tasks and stay organised" />
-        <button onClick={() => setShowForm(!showForm)} className="nk-btn-primary flex items-center gap-2 self-start">
+        <button onClick={() => { setShowForm(!showForm); setEditingItem(null); setFormData({ title: '', description: '', due_date: '', priority: 'medium', category: '' }); }}
+          className="nk-btn-primary flex items-center gap-2 self-start">
           <Plus className="w-4 h-4" /><span>Add Task</span>
         </button>
       </div>
@@ -108,7 +126,9 @@ export function Checklist({ weddingId }: ChecklistProps) {
 
       {showForm && (
         <Card className="p-6">
-          <h3 className="text-2xl font-display font-semibold text-indigo-900 mb-4">Add new task</h3>
+          <h3 className="text-2xl font-display font-semibold text-indigo-900 mb-4">
+            {editingItem ? 'Edit task' : 'Add new task'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="nk-label">Task title *</label>
@@ -142,8 +162,8 @@ export function Checklist({ weddingId }: ChecklistProps) {
               </div>
             </div>
             <div className="flex gap-3">
-              <button type="submit" className="nk-btn-primary flex-1">Add Task</button>
-              <button type="button" onClick={() => setShowForm(false)} className="nk-btn-ghost flex-1">Cancel</button>
+              <button type="submit" className="nk-btn-primary flex-1">{editingItem ? 'Save Task' : 'Add Task'}</button>
+              <button type="button" onClick={() => { setShowForm(false); setEditingItem(null); }} className="nk-btn-ghost flex-1">Cancel</button>
             </div>
           </form>
         </Card>
@@ -185,9 +205,14 @@ export function Checklist({ weddingId }: ChecklistProps) {
                       )}
                     </div>
                   </div>
-                  <button onClick={() => deleteItem(item.id)} className="text-rose-500 hover:text-rose-600 transition-colors flex-shrink-0">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <button onClick={() => startEdit(item)} className="text-gold-600 hover:text-gold-700 transition-colors">
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button onClick={() => deleteItem(item.id)} className="text-rose-500 hover:text-rose-600 transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
